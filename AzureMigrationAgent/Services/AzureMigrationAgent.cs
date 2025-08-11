@@ -364,4 +364,37 @@ public class AzureMigrationAgent
             _ => 43.75m
         };
     }
+
+    public async Task<string> AnswerFollowUpQuestionAsync(string contextualPrompt, AzureRecommendation previousAnalysis)
+    {
+        var chatHistory = new ChatHistory();
+        chatHistory.AddSystemMessage(GetFollowUpSystemPrompt());
+        chatHistory.AddUserMessage(contextualPrompt);
+        
+        var response = await _chatService.GetChatMessageContentAsync(chatHistory);
+        
+        return response.Content ?? "I apologize, but I couldn't process your question at this time. Please try rephrasing it.";
+    }
+
+    private string GetFollowUpSystemPrompt()
+    {
+        return """
+            You are an expert Azure Migration Architect providing follow-up consultation.
+            
+            The user has already received an initial migration analysis and now has specific questions.
+            Your responses should be:
+            1. Detailed and specific to their application
+            2. Professional but conversational
+            3. Include concrete examples and numbers when possible
+            4. Provide actionable recommendations
+            5. Use formatting (bullet points, headers) for readability
+            
+            For cost questions: Provide detailed breakdowns
+            For timeline questions: Show phases and milestones
+            For security questions: List specific recommendations
+            For technical questions: Explain the reasoning behind recommendations
+            
+            Be helpful and thorough while maintaining expertise.
+            """;
+    }
 }

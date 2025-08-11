@@ -1,0 +1,1015 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Azure Migration AI Agent";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="~/css/chat.css" rel="stylesheet" />
+</head>
+<body>
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-cloud-upload-alt"></i> Azure Migration AI</h1>
+                <p>Intelligent migration analysis and recommendations</p>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- File Upload Section -->
+                <div class="upload-section">
+                    <h3><i class="fas fa-file-upload"></i> Upload Application Data</h3>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">Drop JSON file here</div>
+                        <div class="upload-subtext">or click to browse your files</div>
+                        <button class="upload-btn" onclick="document.getElementById('fileInput').click();">
+                            <i class="fas fa-folder-open"></i> Browse Files
+                        </button>
+                        <input type="file" id="fileInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="actions-section">
+                    <h3><i class="fas fa-lightning-bolt"></i> Quick Actions</h3>
+                    <button class="action-btn" onclick="askQuestion('What about security considerations?')" disabled id="securityBtn">
+                        <i class="fas fa-shield-alt"></i> Security Analysis
+                    </button>
+                    <button class="action-btn" onclick="askQuestion('Can you break down the costs in detail?')" disabled id="costBtn">
+                        <i class="fas fa-dollar-sign"></i> Cost Breakdown
+                    </button>
+                    <button class="action-btn" onclick="askQuestion('Show me the detailed migration timeline')" disabled id="timelineBtn">
+                        <i class="fas fa-calendar-alt"></i> Migration Timeline
+                    </button>
+                    <button class="action-btn" onclick="askQuestion('What are the migration risks and how to mitigate them?')" disabled id="risksBtn">
+                        <i class="fas fa-exclamation-triangle"></i> Risk Assessment
+                    </button>
+                    <button class="action-btn" onclick="clearSession()">
+                        <i class="fas fa-trash"></i> Clear Session
+                    </button>
+                </div>
+
+                <!-- Export Section -->
+                <div class="export-section">
+                    <h3><i class="fas fa-download"></i> Export Analysis</h3>
+                    <button class="export-btn" onclick="exportToPDF()" disabled id="exportPdfBtn">
+                        <i class="fas fa-file-pdf"></i> Download PDF Report
+                    </button>
+                    <button class="export-btn" onclick="exportToJSON()" disabled id="exportJsonBtn">
+                        <i class="fas fa-file-code"></i> Download JSON Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-status">
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        <span id="statusText">Ready - Upload a JSON file to begin</span>
+                    </div>
+                    <div>
+                        <small class="text-muted">Powered by Azure OpenAI GPT-4.1</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <div class="message-header">
+                        <div class="message-avatar bot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <strong>Azure Migration Expert</strong>
+                        <small class="text-muted">Just now</small>
+                    </div>
+                    <div class="message-content">
+                        <h5>👋 Welcome to Azure Migration AI Agent!</h5>
+                        <p>I'm your intelligent Azure migration consultant. I can help you:</p>
+                        <ul class="mt-2">
+                            <li><strong>Analyze</strong> your on-premises applications</li>
+                            <li><strong>Recommend</strong> optimal Azure services and SKUs</li>
+                            <li><strong>Estimate</strong> costs and migration complexity</li>
+                            <li><strong>Provide</strong> security and compliance guidance</li>
+                            <li><strong>Create</strong> detailed migration timelines</li>
+                        </ul>
+                        <p class="mt-3"><strong>Getting started:</strong> Upload your application JSON file using the sidebar, and I'll provide comprehensive analysis and recommendations!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loadingIndicator">
+                <div class="typing-indicator">
+                    <span>AI is thinking</span>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <div class="input-container">
+                    <textarea class="message-input" id="messageInput" placeholder="Ask me about your migration... (Upload a file first)" rows="1" disabled></textarea>
+                    <button class="send-btn" id="sendButton" onclick="sendMessage()" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="suggestions" id="suggestions" style="display: none;">
+                    <div class="suggestion-chip" onclick="askQuestion('What about security considerations?')">🔒 Security</div>
+                    <div class="suggestion-chip" onclick="askQuestion('Break down the costs')">💰 Costs</div>
+                    <div class="suggestion-chip" onclick="askQuestion('Migration timeline')">📅 Timeline</div>
+                    <div class="suggestion-chip" onclick="askQuestion('Risk assessment')">⚠️ Risks</div>
+                    <div class="suggestion-chip" onclick="askQuestion('Best practices')">✨ Best Practices</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        let hasAnalysis = false;
+        let analysisData = null;
+        let conversationHistory = [];
+
+        // File upload handling
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Drag and drop
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        });
+
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('dragover');
+        });
+
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileUploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Handle file upload
+        async function handleFile(file) {
+            if (!file.name.endsWith('.json')) {
+                addMessage('bot', '❌ Please upload a JSON file containing your application data.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            addMessage('user', `📁 Uploaded: <strong>${file.name}</strong> (${(file.size / 1024).toFixed(2)} KB)`);
+            showLoading(true);
+            updateStatus('Analyzing your application data...');
+
+            try {
+                const response = await fetch('/api/chat/upload-and-analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    analysisData = result.data;
+                    addMessage('bot', result.message);
+                    conversationHistory.push({ role: 'assistant', content: result.message });
+                    hasAnalysis = true;
+                    enableChat();
+                    enableActions();
+                    updateStatus('Analysis complete - Ready for questions!');
+                    showSuggestions();
+                } else {
+                    addMessage('bot', `❌ <strong>Error:</strong> ${result.error}`);
+                    updateStatus('Upload failed - Please try again');
+                }
+            } catch (error) {
+                addMessage('bot', `❌ <strong>Connection Error:</strong> ${error.message}`);
+                updateStatus('Connection failed - Check your network');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            addMessage('user', message);
+            conversationHistory.push({ role: 'user', content: message });
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            if (!hasAnalysis) {
+                addMessage('bot', '⚠️ <strong>Please upload an application JSON file first.</strong><br>I need your application data to provide accurate recommendations.');
+                return;
+            }
+
+            await processQuestion(message);
+        }
+
+        // Ask predefined question
+        async function askQuestion(question) {
+            if (!hasAnalysis) {
+                addMessage('bot', '⚠️ <strong>Please upload an application JSON file first.</strong>');
+                return;
+            }
+
+            addMessage('user', question);
+            conversationHistory.push({ role: 'user', content: question });
+            await processQuestion(question);
+        }
+
+        // Process question
+        async function processQuestion(question) {
+            showLoading(true);
+            updateStatus('AI is analyzing your question...');
+
+            try {
+                const response = await fetch('/api/chat/ask-question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    addMessage('bot', result.message);
+                    conversationHistory.push({ role: 'assistant', content: result.message });
+                    updateStatus('Ready for your next question');
+                } else {
+                    addMessage('bot', `❌ <strong>Error:</strong> ${result.error}`);
+                    updateStatus('Error processing question');
+                }
+            } catch (error) {
+                addMessage('bot', `❌ <strong>Connection Error:</strong> ${error.message}`);
+                updateStatus('Connection failed');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Clear session
+        async function clearSession() {
+            try {
+                await fetch('/api/chat/clear-session', { method: 'POST' });
+                document.getElementById('chatMessages').innerHTML = '';
+                conversationHistory = [];
+                analysisData = null;
+                
+                addMessage('bot', `
+                    <h5>🔄 Session Cleared</h5>
+                    <p>Ready for a fresh start! Upload a new JSON file to begin analysis.</p>
+                `);
+                
+                hasAnalysis = false;
+                disableChat();
+                disableActions();
+                updateStatus('Session cleared - Upload a file to begin');
+                document.getElementById('suggestions').style.display = 'none';
+            } catch (error) {
+                console.error('Error clearing session:', error);
+            }
+        }
+
+        // Export functions
+        async function exportToPDF() {
+            if (!conversationHistory.length) {
+                addMessage('bot', '⚠️ No conversation data to export. Start a conversation first!');
+                return;
+            }
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+
+                // Add title
+                pdf.setFontSize(20);
+                pdf.text('Azure Migration Analysis Report', 20, 30);
+                
+                pdf.setFontSize(12);
+                pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 40);
+                pdf.text(`Time: ${new Date().toLocaleTimeString()}`, 20, 50);
+                
+                let yPos = 70;
+                const pageHeight = pdf.internal.pageSize.height;
+                const margin = 20;
+                const maxWidth = pdf.internal.pageSize.width - 2 * margin;
+
+                conversationHistory.forEach((entry, index) => {
+                    if (yPos > pageHeight - 40) {
+                        pdf.addPage();
+                        yPos = 30;
+                    }
+
+                    const role = entry.role === 'user' ? 'Question' : 'AI Response';
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text(`${index + 1}. ${role}:`, margin, yPos);
+                    yPos += 10;
+
+                    pdf.setFont(undefined, 'normal');
+                    const cleanContent = entry.content
+                        .replace(/\*\*(.*?)\*\*/g, '$1')
+                        .replace(/<[^>]*>/g, '')
+                        .replace(/&nbsp;/g, ' ');
+
+                    const lines = pdf.splitTextToSize(cleanContent, maxWidth);
+                    lines.forEach(line => {
+                        if (yPos > pageHeight - 20) {
+                            pdf.addPage();
+                            yPos = 30;
+                        }
+                        pdf.text(line, margin, yPos);
+                        yPos += 7;
+                    });
+                    yPos += 15;
+                });
+
+                pdf.save(`Azure-Migration-Analysis-${new Date().toISOString().slice(0, 10)}.pdf`);
+                addMessage('bot', '✅ <strong>PDF Report Downloaded!</strong><br>Your conversation has been saved as a PDF file.');
+            } catch (error) {
+                addMessage('bot', `❌ <strong>PDF Export Error:</strong> ${error.message}`);
+            }
+        }
+
+        async function exportToJSON() {
+            if (!analysisData) {
+                addMessage('bot', '⚠️ No analysis data to export. Upload and analyze a file first!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/chat/export-data');
+                const data = await response.json();
+                
+                const dataStr = JSON.stringify(data, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Azure-Migration-Analysis-${new Date().toISOString().slice(0, 10)}.json`;
+                link.click();
+                
+                URL.revokeObjectURL(url);
+                addMessage('bot', '✅ <strong>JSON Data Downloaded!</strong><br>Your analysis data has been saved as a JSON file.');
+            } catch (error) {
+                addMessage('bot', `❌ <strong>JSON Export Error:</strong> ${error.message}`);
+            }
+        }
+
+        // UI Helper functions
+        function addMessage(sender, content) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const timestamp = new Date().toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            const avatar = sender === 'user' ? 
+                '<div class="message-avatar user-avatar"><i class="fas fa-user"></i></div>' :
+                '<div class="message-avatar bot-avatar"><i class="fas fa-robot"></i></div>';
+            
+            const senderName = sender === 'user' ? 'You' : 'Azure Migration Expert';
+            
+            // Convert markdown-like formatting to HTML
+            const formattedContent = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>')
+                .replace(/• /g, '• ');
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    ${avatar}
+                    <strong>${senderName}</strong>
+                    <small class="text-muted">${timestamp}</small>
+                </div>
+                <div class="message-content">
+                    ${formattedContent}
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showLoading(show) {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (show) {
+                loadingIndicator.classList.add('show');
+            } else {
+                loadingIndicator.classList.remove('show');
+            }
+        }
+
+        function enableChat() {
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            messageInput.placeholder = 'Ask me about your migration...';
+        }
+
+        function disableChat() {
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            messageInput.placeholder = 'Upload a JSON file first to enable chat...';
+        }
+
+        function enableActions() {
+            document.getElementById('securityBtn').disabled = false;
+            document.getElementById('costBtn').disabled = false;
+            document.getElementById('timelineBtn').disabled = false;
+            document.getElementById('risksBtn').disabled = false;
+            document.getElementById('exportPdfBtn').disabled = false;
+            document.getElementById('exportJsonBtn').disabled = false;
+        }
+
+        function disableActions() {
+            document.getElementById('securityBtn').disabled = true;
+            document.getElementById('costBtn').disabled = true;
+            document.getElementById('timelineBtn').disabled = true;
+            document.getElementById('risksBtn').disabled = true;
+            document.getElementById('exportPdfBtn').disabled = true;
+            document.getElementById('exportJsonBtn').disabled = true;
+        }
+
+        function updateStatus(text) {
+            document.getElementById('statusText').textContent = text;
+        }
+
+        function showSuggestions() {
+            document.getElementById('suggestions').style.display = 'flex';
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Enter key support
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !sendButton.disabled) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Check session status on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/api/chat/session-status');
+                const status = await response.json();
+                
+                if (status.hasAnalysis) {
+                    hasAnalysis = true;
+                    enableChat();
+                    enableActions();
+                    showSuggestions();
+                    updateStatus(`Previous analysis: ${status.applicationName}`);
+                    
+                    addMessage('bot', `
+                        <h5>🔄 Session Restored</h5>
+                        <p>I found your previous analysis for <strong>${status.applicationName}</strong>. You can continue asking questions or upload a new file to start fresh.</p>
+                    `);
+                }
+            } catch (error) {
+                console.error('Error checking session status:', error);
+            }
+        });
+    </script>
+</body>
+</html>
+<body>
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-cloud-upload-alt"></i> Azure Migration AI</h1>
+                <p>Intelligent migration analysis and recommendations</p>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- File Upload Section -->
+                <div class="upload-section">
+                    <h3><i class="fas fa-file-upload"></i> Upload Application Data</h3>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">Drop JSON file here</div>
+                        <div class="upload-subtext">or click to browse your files</div>
+                        <button class="upload-btn" onclick="document.getElementById('fileInput').click();">
+                            <i class="fas fa-folder-open"></i> Browse Files
+                        </button>
+                        <input type="file" id="fileInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="actions-section">
+                    <h3><i class="fas fa-lightning-bolt"></i> Quick Actions</h3>
+                    <button class="action-btn" onclick="askQuestion('What about security considerations?')" disabled id="securityBtn">
+                        <i class="fas fa-shield-alt"></i> Security Analysis
+                    </button>
+                    <button class="action-btn" onclick="askQuestion('Can you break down the costs in detail?')" disabled id="costBtn">
+                        <i class="fas fa-dollar-sign"></i> Cost Breakdown
+                    </button>
+                    <button class="action-btn" onclick="askQuestion('Show me the detailed migration timeline')" disabled id="timelineBtn">
+                        <i class="fas fa-calendar-alt"></i> Migration Timeline
+                    </button>
+                    <button class="action-btn" onclick="askQuestion('What are the migration risks and how to mitigate them?')" disabled id="risksBtn">
+                        <i class="fas fa-exclamation-triangle"></i> Risk Assessment
+                    </button>
+                    <button class="action-btn" onclick="clearSession()">
+                        <i class="fas fa-trash"></i> Clear Session
+                    </button>
+                </div>
+
+                <!-- Export Section -->
+                <div class="export-section">
+                    <h3><i class="fas fa-download"></i> Export Analysis</h3>
+                    <button class="export-btn" onclick="exportToPDF()" disabled id="exportPdfBtn">
+                        <i class="fas fa-file-pdf"></i> Download PDF Report
+                    </button>
+                    <button class="export-btn" onclick="exportToJSON()" disabled id="exportJsonBtn">
+                        <i class="fas fa-file-code"></i> Download JSON Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-status">
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        <span id="statusText">Ready - Upload a JSON file to begin</span>
+                    </div>
+                    <div>
+                        <small class="text-muted">Powered by Azure OpenAI GPT-4.1</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <div class="message-header">
+                        <div class="message-avatar bot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <strong>Azure Migration Expert</strong>
+                        <small class="text-muted">Just now</small>
+                    </div>
+                    <div class="message-content">
+                        <h5>👋 Welcome to Azure Migration AI Agent!</h5>
+                        <p>I'm your intelligent Azure migration consultant. I can help you:</p>
+                        <ul class="mt-2">
+                            <li><strong>Analyze</strong> your on-premises applications</li>
+                            <li><strong>Recommend</strong> optimal Azure services and SKUs</li>
+                            <li><strong>Estimate</strong> costs and migration complexity</li>
+                            <li><strong>Provide</strong> security and compliance guidance</li>
+                            <li><strong>Create</strong> detailed migration timelines</li>
+                        </ul>
+                        <p class="mt-3"><strong>Getting started:</strong> Upload your application JSON file using the sidebar, and I'll provide comprehensive analysis and recommendations!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loadingIndicator">
+                <div class="typing-indicator">
+                    <span>AI is thinking</span>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <div class="input-container">
+                    <textarea class="message-input" id="messageInput" placeholder="Ask me about your migration... (Upload a file first)" rows="1" disabled></textarea>
+                    <button class="send-btn" id="sendButton" onclick="sendMessage()" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="suggestions" id="suggestions" style="display: none;">
+                    <div class="suggestion-chip" onclick="askQuestion('What about security considerations?')">🔒 Security</div>
+                    <div class="suggestion-chip" onclick="askQuestion('Break down the costs')">💰 Costs</div>
+                    <div class="suggestion-chip" onclick="askQuestion('Migration timeline')">📅 Timeline</div>
+                    <div class="suggestion-chip" onclick="askQuestion('Risk assessment')">⚠️ Risks</div>
+                    <div class="suggestion-chip" onclick="askQuestion('Best practices')">✨ Best Practices</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        let hasAnalysis = false;
+        let analysisData = null;
+        let conversationHistory = [];
+
+        // File upload handling
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Drag and drop
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        });
+
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('dragover');
+        });
+
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileUploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Handle file upload
+        async function handleFile(file) {
+            if (!file.name.endsWith('.json')) {
+                addMessage('bot', '❌ Please upload a JSON file containing your application data.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            addMessage('user', `📁 Uploaded: <strong>${file.name}</strong> (${(file.size / 1024).toFixed(2)} KB)`);
+            showLoading(true);
+            updateStatus('Analyzing your application data...');
+
+            try {
+                const response = await fetch('/api/chat/upload-and-analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    analysisData = result.data;
+                    addMessage('bot', result.message);
+                    hasAnalysis = true;
+                    enableChat();
+                    enableActions();
+                    updateStatus('Analysis complete - Ready for questions!');
+                    showSuggestions();
+                } else {
+                    addMessage('bot', `❌ <strong>Error:</strong> ${result.error}`);
+                    updateStatus('Upload failed - Please try again');
+                }
+            } catch (error) {
+                addMessage('bot', `❌ <strong>Connection Error:</strong> ${error.message}`);
+                updateStatus('Connection failed - Check your network');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            addMessage('user', message);
+            conversationHistory.push({ role: 'user', content: message });
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            if (!hasAnalysis) {
+                addMessage('bot', '⚠️ <strong>Please upload an application JSON file first.</strong><br>I need your application data to provide accurate recommendations.');
+                return;
+            }
+
+            await processQuestion(message);
+        }
+
+        // Ask predefined question
+        async function askQuestion(question) {
+            if (!hasAnalysis) {
+                addMessage('bot', '⚠️ <strong>Please upload an application JSON file first.</strong>');
+                return;
+            }
+
+            addMessage('user', question);
+            conversationHistory.push({ role: 'user', content: question });
+            await processQuestion(question);
+        }
+
+        // Process question
+        async function processQuestion(question) {
+            showLoading(true);
+            updateStatus('AI is analyzing your question...');
+
+            try {
+                const response = await fetch('/api/chat/ask-question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    addMessage('bot', result.message);
+                    conversationHistory.push({ role: 'assistant', content: result.message });
+                    updateStatus('Ready for your next question');
+                } else {
+                    addMessage('bot', `❌ <strong>Error:</strong> ${result.error}`);
+                    updateStatus('Error processing question');
+                }
+            } catch (error) {
+                addMessage('bot', `❌ <strong>Connection Error:</strong> ${error.message}`);
+                updateStatus('Connection failed');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Clear session
+        async function clearSession() {
+            try {
+                await fetch('/api/chat/clear-session', { method: 'POST' });
+                document.getElementById('chatMessages').innerHTML = '';
+                conversationHistory = [];
+                analysisData = null;
+                
+                addMessage('bot', `
+                    <h5>🔄 Session Cleared</h5>
+                    <p>Ready for a fresh start! Upload a new JSON file to begin analysis.</p>
+                `);
+                
+                hasAnalysis = false;
+                disableChat();
+                disableActions();
+                updateStatus('Session cleared - Upload a file to begin');
+            } catch (error) {
+                console.error('Error clearing session:', error);
+            }
+        }
+
+        // Export functions
+        async function exportToPDF() {
+            if (!conversationHistory.length) return;
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+
+            // Add title
+            pdf.setFontSize(20);
+            pdf.text('Azure Migration Analysis Report', 20, 30);
+            
+            pdf.setFontSize(12);
+            pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 40);
+            
+            let yPos = 60;
+            const pageHeight = pdf.internal.pageSize.height;
+            const margin = 20;
+            const maxWidth = pdf.internal.pageSize.width - 2 * margin;
+
+            conversationHistory.forEach((entry, index) => {
+                if (yPos > pageHeight - 40) {
+                    pdf.addPage();
+                    yPos = 30;
+                }
+
+                const role = entry.role === 'user' ? 'Question' : 'AI Response';
+                pdf.setFont(undefined, 'bold');
+                pdf.text(`${role}:`, margin, yPos);
+                yPos += 10;
+
+                pdf.setFont(undefined, 'normal');
+                const lines = pdf.splitTextToSize(entry.content.replace(/\*\*(.*?)\*\*/g, '$1'), maxWidth);
+                lines.forEach(line => {
+                    if (yPos > pageHeight - 20) {
+                        pdf.addPage();
+                        yPos = 30;
+                    }
+                    pdf.text(line, margin, yPos);
+                    yPos += 7;
+                });
+                yPos += 10;
+            });
+
+            pdf.save('Azure-Migration-Analysis.pdf');
+        }
+
+        async function exportToJSON() {
+            if (!analysisData) return;
+
+            const dataStr = JSON.stringify(analysisData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'Azure-Migration-Analysis.json';
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // UI Helper functions
+        function addMessage(sender, content) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const timestamp = new Date().toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            const avatar = sender === 'user' ? 
+                '<div class="message-avatar user-avatar"><i class="fas fa-user"></i></div>' :
+                '<div class="message-avatar bot-avatar"><i class="fas fa-robot"></i></div>';
+            
+            const senderName = sender === 'user' ? 'You' : 'Azure Migration Expert';
+            
+            // Convert markdown-like formatting to HTML
+            const formattedContent = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>')
+                .replace(/• /g, '• ');
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    ${avatar}
+                    <strong>${senderName}</strong>
+                    <small class="text-muted">${timestamp}</small>
+                </div>
+                <div class="message-content">
+                    ${formattedContent}
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showLoading(show) {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (show) {
+                loadingIndicator.classList.add('show');
+            } else {
+                loadingIndicator.classList.remove('show');
+            }
+        }
+
+        function enableChat() {
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            messageInput.placeholder = 'Ask me about your migration...';
+        }
+
+        function disableChat() {
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            messageInput.placeholder = 'Upload a JSON file first to enable chat...';
+        }
+
+        function enableActions() {
+            document.getElementById('securityBtn').disabled = false;
+            document.getElementById('costBtn').disabled = false;
+            document.getElementById('timelineBtn').disabled = false;
+            document.getElementById('risksBtn').disabled = false;
+            document.getElementById('exportPdfBtn').disabled = false;
+            document.getElementById('exportJsonBtn').disabled = false;
+        }
+
+        function disableActions() {
+            document.getElementById('securityBtn').disabled = true;
+            document.getElementById('costBtn').disabled = true;
+            document.getElementById('timelineBtn').disabled = true;
+            document.getElementById('risksBtn').disabled = true;
+            document.getElementById('exportPdfBtn').disabled = true;
+            document.getElementById('exportJsonBtn').disabled = true;
+        }
+
+        function updateStatus(text) {
+            document.getElementById('statusText').textContent = text;
+        }
+
+        function showSuggestions() {
+            document.getElementById('suggestions').style.display = 'flex';
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Enter key support
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !sendButton.disabled) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Check session status on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/api/chat/session-status');
+                const status = await response.json();
+                
+                if (status.hasAnalysis) {
+                    hasAnalysis = true;
+                    enableChat();
+                    enableActions();
+                    showSuggestions();
+                    updateStatus(`Previous analysis: ${status.applicationName}`);
+                    
+                    addMessage('bot', `
+                        <h5>🔄 Session Restored</h5>
+                        <p>I found your previous analysis for <strong>${status.applicationName}</strong>. You can continue asking questions or upload a new file to start fresh.</p>
+                    `);
+                }
+            } catch (error) {
+                console.error('Error checking session status:', error);
+            }
+        });
+    </script>
+</body>
+</html>
