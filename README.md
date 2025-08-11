@@ -107,7 +107,7 @@ The agent generates comprehensive analysis including:
 
 ```json
 {
-  "ApplicationName": "BILLING ASSISTANCE CENTER",
+  "ApplicationName": "YOUR APP NAME",
   "AnalysisDate": "2025-08-11T14:36:53",
   "CurrentState": {
     "TotalServers": 2,
