@@ -1,14 +1,16 @@
 # 🚀 Azure Migration AI Agent
 
-An intelligent C# console application powered by **Microsoft Semantic Kernel** and **Azure OpenAI (GPT-4.1)** that analyzes on-premises infrastructure and provides comprehensive Azure migration recommendations.
+An comprehensive **AI-powered migration analysis platform** with both **web-based chat interface** and **core library** components. Built with **Microsoft Semantic Kernel** and **Azure OpenAI (GPT-4.1)** to analyze on-premises infrastructure and provide intelligent Azure migration recommendations.
 
 ## 🎯 What It Does
 
-- **Analyzes** on-premises application infrastructure from JSON data
-- **Recommends** optimal Azure services and SKUs 
-- **Estimates** migration costs and complexity
-- **Provides** security and compliance guidance
-- **Generates** structured reports for migration planning
+- **🔍 Analyzes** on-premises application infrastructure from JSON data
+- **🎯 Recommends** optimal Azure services and SKUs with detailed justifications
+- **💰 Estimates** migration costs and complexity with breakdown analysis
+- **🔒 Provides** security and compliance guidance tailored to your infrastructure
+- **📊 Generates** comprehensive reports with PDF/JSON export capabilities
+- **💬 Interactive Chat** for follow-up questions and detailed exploration
+- **🌐 Professional Web Interface** for enterprise-ready user experience
 
 ## 🏗️ Architecture
 
@@ -23,11 +25,19 @@ An intelligent C# console application powered by **Microsoft Semantic Kernel** a
 
 ## 🛠️ Tech Stack
 
-- **C# (.NET 8)** - Main application framework
+### Core Library (AzureMigrationAgent)
+- **C# (.NET 8)** - Core business logic and AI services
 - **Microsoft Semantic Kernel** - AI orchestration and prompt engineering
-- **Azure OpenAI (GPT-4.1)** - Advanced AI model for analysis
-- **Newtonsoft.Json** - JSON processing
-- **Dependency Injection** - Clean architecture patterns
+- **Azure OpenAI (GPT-4.1)** - Advanced AI model for intelligent analysis
+- **Newtonsoft.Json** - JSON processing and data serialization
+
+### Web Application (AzureMigrationAgent.Web)
+- **ASP.NET Core (.NET 9)** - Modern web framework
+- **Razor Pages** - Server-side rendered UI
+- **Bootstrap 5 & FontAwesome** - Professional responsive design
+- **HTML5/CSS3/JavaScript** - Interactive frontend features
+- **jsPDF** - Client-side PDF report generation
+- **Session Management** - Persistent chat context
 
 ## 📋 Prerequisites
 
@@ -44,12 +54,14 @@ cd Migration-Ai-Agent
 ```
 
 ### 2. Configure API Keys
+Update the web application's configuration with your API keys:
+
 ```bash
-# Copy the example configuration
-copy appsettings.example.json appsettings.json
+# Navigate to web project
+cd AzureMigrationAgent.Web
 
 # Edit appsettings.json with your API keys
-# For Azure OpenAI:
+# For Azure OpenAI (Recommended):
 {
   "Azure": {
     "OpenAI": {
@@ -64,39 +76,30 @@ copy appsettings.example.json appsettings.json
 {
   "OpenAI": {
     "ApiKey": "sk-your-openai-key",
-    "Model": "gpt-4.1"
+    "ModelId": "gpt-4o"
   }
 }
 ```
 
-### 3. Prepare Your Data
-Place your infrastructure JSON file as `appdata.json` in the project root:
-
-```json
-{
-  "application_Name": "Your Application Name",
-  "mALServers": [
-    {
-      "server_Name": "SERVER01",
-      "cpUs_Cores": "8",
-      "memory_Size_MB": "32768",
-      "operating_System": "Windows Server 2019"
-    }
-  ]
-}
-```
-
-### 4. Build and Run
+### 3. Build and Run the Web Application
 ```bash
-# Restore packages
+# Restore packages and build
 dotnet restore
-
-# Build the project  
 dotnet build
 
-# Run the analysis
+# Start the web application
 dotnet run
+
+# Access the application
+# Open browser to: http://localhost:5104
+# Or secure: https://localhost:7121
 ```
+
+### 4. Upload and Analyze
+1. **Open** your browser to `http://localhost:5104`
+2. **Upload** your infrastructure JSON file using the drag-and-drop interface
+3. **Interact** with the AI agent through the chat interface
+4. **Export** your analysis as PDF or JSON report
 
 ## 📊 Sample Output
 
@@ -130,26 +133,89 @@ The agent generates comprehensive analysis including:
 ## 📁 Project Structure
 
 ```
-📦 AzureMigrationAgent/
-├── 📄 Program.cs                    # Main orchestrator
-├── 📄 appsettings.json              # Configuration (not in repo)
-├── 📄 appsettings.example.json      # Configuration template
+📦 Azure Migration AI Platform/
+├── 🌐 AzureMigrationAgent.Web/          # ASP.NET Core Web Application
+│   ├── 📄 Program.cs                    # Web app entry point & DI setup
+│   ├── ⚙️ appsettings.json             # Configuration (API keys, etc.)
+│   │
+│   ├── 📁 Controllers/                  # RESTful API endpoints
+│   │   └── 📄 ChatController.cs         # Chat API, file upload, exports
+│   │
+│   ├── � Pages/                        # Razor Pages UI
+│   │   └── 📄 Index.cshtml              # Main chat interface
+│   │
+│   └── 📁 wwwroot/                      # Static web assets
+│       ├── 📁 css/
+│       │   └── 📄 chat.css              # Professional UI styling
+│       ├── 📁 js/                       # JavaScript functionality
+│       └── 📁 images/                   # UI assets
 │
-├── 📁 Models/                       # Data structures
-│   ├── 📄 ApplicationData.cs        # Input data model
-│   └── 📄 AzureRecommendation.cs    # Output recommendation model
+├── 📚 AzureMigrationAgent/              # Core Library (Referenced by Web)
+│   ├── 📁 Models/                       # Data structures & DTOs
+│   │   ├── 📄 ApplicationData.cs        # Input data model
+│   │   └── 📄 AzureRecommendation.cs    # AI analysis output model
+│   │
+│   └── 📁 Services/                     # Business logic & AI services
+│       └── 📄 AzureMigrationAgent.cs    # Core AI analysis engine
 │
-├── 📁 Services/                     # Business logic
-│   └── 📄 AzureMigrationAgent.cs    # Core AI agent service
+├── 📁 Knowledge/                        # RAG knowledge base (Future)
+│   └── 📄 azure-migration-guide.md     # Domain expertise for RAG
 │
-├── 📁 Knowledge/                    # RAG knowledge base
-│   └── 📄 azure-migration-guide.md  # Domain expertise for future RAG
+├── 📁 Documentation/                    # Technical documentation
+│   ├── 📄 ARCHITECTURE.md              # Detailed architecture guide
+│   ├── 📄 DATA-FLOW.md                # Data flow documentation
+│   └── 📄 RAG-ENHANCEMENT.md          # Future RAG implementation
 │
-└── 📁 Documentation/                # Technical docs
-    ├── 📄 ARCHITECTURE.md           # Detailed architecture guide
-    ├── 📄 DATA-FLOW.md             # Data flow documentation
-    └── 📄 RAG-ENHANCEMENT.md       # Future RAG implementation
+├── 📄 appdata.json                      # Sample application data
+├── 📄 appsettings.example.json          # Configuration template
+└── 📄 AzureMigrationAgent.sln           # Visual Studio solution
 ```
+
+### 🏗️ Architecture Layers
+
+1. **🌐 Presentation Layer** (`AzureMigrationAgent.Web`)
+   - Interactive chat interface
+   - File upload and drag-and-drop
+   - Real-time AI responses
+   - PDF/JSON export capabilities
+
+2. **🧠 Business Logic Layer** (`AzureMigrationAgent`)
+   - AI analysis engine
+   - Migration recommendations
+   - Cost calculations
+   - Security assessments
+
+3. **📊 Data Layer**
+   - JSON parsing and validation
+   - Session management
+   - Export data formatting
+
+## 🌐 Web Interface Features
+
+### 💬 Interactive Chat Experience
+- **Professional Design**: Modern, full-screen chat interface with sidebar navigation
+- **Drag & Drop Upload**: Easy JSON file upload with visual feedback
+- **Real-time Analysis**: Live AI processing with typing indicators
+- **Session Persistence**: Maintains context across browser sessions
+- **Follow-up Questions**: Ask detailed questions about any aspect of the analysis
+
+### 🎯 Quick Action Buttons
+- **🔒 Security Analysis**: Get detailed security recommendations and compliance guidance
+- **💰 Cost Breakdown**: Drill down into cost estimates and optimization opportunities
+- **📅 Migration Timeline**: View detailed migration phases and milestones
+- **⚠️ Risk Assessment**: Understand potential risks and mitigation strategies
+
+### 📊 Export Capabilities
+- **📄 PDF Reports**: Professional, formatted reports with comprehensive analysis
+- **📋 JSON Data**: Raw analysis data for integration with other tools
+- **📈 Executive Summary**: High-level overview for stakeholder presentations
+
+### 🎨 User Experience
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **Bootstrap 5 UI**: Modern, professional appearance with accessibility features
+- **Font Awesome Icons**: Intuitive visual elements for better usability
+- **Loading States**: Clear feedback during AI processing
+- **Error Handling**: Graceful error handling with helpful messages
 
 ## 🔧 Configuration Options
 
@@ -197,12 +263,27 @@ The `Knowledge/` folder is prepared for Retrieval-Augmented Generation:
 
 ## 📈 Roadmap
 
+### ✅ Completed
+- [x] **Core AI Analysis Engine**: Intelligent infrastructure analysis with GPT-4.1
+- [x] **Web Interface**: Professional chat-based interface with full-screen design
+- [x] **Interactive Chat**: Follow-up questions and contextual conversations
+- [x] **Export Functionality**: PDF and JSON report generation
+- [x] **Session Management**: Persistent chat context and analysis state
+- [x] **Professional UI**: Bootstrap 5 responsive design with modern UX
+
+### 🚧 In Progress
+- [ ] **Enhanced Data Models**: Support for more infrastructure components
+- [ ] **Advanced Security Analysis**: Detailed compliance and security assessments
+- [ ] **Cost Optimization Engine**: AI-powered cost optimization recommendations
+
+### 🔮 Future Features
 - [ ] **RAG Pipeline**: Use knowledge base for context-aware recommendations
 - [ ] **Batch Processing**: Analyze multiple applications simultaneously  
-- [ ] **Web Interface**: REST API and web dashboard
 - [ ] **Database Integration**: Store analysis history and trends
 - [ ] **Azure Resource Manager**: Direct deployment of recommended infrastructure
-- [ ] **Cost Optimization**: Continuous monitoring and right-sizing
+- [ ] **Multi-Cloud Support**: AWS and Google Cloud migration analysis
+- [ ] **API Integration**: REST API for enterprise integrations
+- [ ] **Advanced Analytics**: Migration success tracking and optimization insights
 
 ## 🤝 Contributing
 
@@ -233,15 +314,25 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🎉 Getting Started Example
 
 ```bash
-# Quick 3-step setup:
+# Quick 4-step setup for web interface:
 git clone https://github.com/BiproDe/Migration-Ai-Agent.git
-cd Migration-Ai-Agent
-cp appsettings.example.json appsettings.json
-# Edit appsettings.json with your API key
+cd Migration-Ai-Agent/AzureMigrationAgent.Web
+# Edit appsettings.json with your Azure OpenAI API key
 dotnet run
+# Open browser to: http://localhost:5104
 ```
 
-**Ready to migrate to Azure with AI-powered insights!** 🚀
+**Ready to analyze your infrastructure with AI-powered migration insights!** 🚀
+
+### 📱 Access URLs:
+- **HTTP**: http://localhost:5104
+- **HTTPS**: https://localhost:7121 (may show certificate warning - safe to ignore for local development)
+
+### 🎯 Quick Demo:
+1. **Upload** the included `appdata.json` sample file
+2. **Chat** with the AI about your migration strategy
+3. **Ask** questions like "What about security considerations?" or "Break down the costs"
+4. **Export** your analysis as a professional PDF report
 
 ---
 
