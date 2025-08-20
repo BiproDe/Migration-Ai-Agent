@@ -401,6 +401,10 @@ secrets.json
 !**/TestData/*.sample.json
 !**/TestData/*.example.json
 
+# Sample and application data files (potentially sensitive)
+sample_data.json
+BILLING_ASSISTANCE_CENTER_appdata.json
+
 # Local development files
 local.settings.json
 .DS_Store
