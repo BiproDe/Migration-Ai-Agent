@@ -89,8 +89,8 @@
 | Service Category | Service Name | SKU/Tier | Specifications | Monthly Cost Estimate | Purpose |
 |------------------|--------------|----------|----------------|---------------------|---------|
 | **Vector Database** | Azure AI Search | **Basic** | • 15 GB storage<br>• 15 indexes<br>• Up to 9 units<br>• Perfect for development | **~$74/month** | **Cost-effective for Phase 1** - handles SharePoint templates and migration guides |
-| **Compute Platform** | Azure App Service | Premium P3v3 | • 8 vCPUs<br>• 32GB RAM<br>• Auto-scaling<br>• Deployment slots | ~$438/month | High-performance hosting for RAG processing, supports concurrent users |
-| **Document Storage** | Azure Blob Storage | Premium Block Blobs | • Hot tier<br>• LRS redundancy<br>• High IOPS<br>• Fast access | ~$50-200/month | Fast document retrieval for SharePoint integration |
+| **Compute Platform** | Azure App Service | **Basic B1** | • 1 vCPU<br>• 1.75GB RAM<br>• 10GB storage<br>• Perfect for development | **~$55/month** | **Cost-effective for Phase 1** - sufficient for development and testing workloads |
+| **Document Storage** | Azure Blob Storage | **Standard Hot** | • Hot tier<br>• LRS redundancy<br>• Standard performance<br>• Cost-optimized | **~$25-50/month** | **Cost-effective for Phase 1** - adequate performance for development |
 | **Application Insights** | Azure Monitor | Standard | • APM monitoring<br>• Custom metrics<br>• Alerting<br>• Log analytics | ~$50-150/month | Performance monitoring, RAG pipeline insights |
 | **Key Management** | Azure Key Vault | Standard | • Hardware security<br>• Certificate management<br>• Secret rotation | ~$10-30/month | Secure API key and connection string management |
 
@@ -121,10 +121,10 @@
 |---------------|---------------------|------------------------------|------------------------------|
 | **AI Models** | $150-400 | $150-400 | $150-400 |
 | **Azure AI Search** | **$74** | **$245** | **$981** |
-| **App Service** | $50-150 (Basic/Standard) | $150-300 (Standard) | $438 (Premium P3v3) |
-| **Storage & Networking** | $50-100 | $100-200 | $100-300 |
-| **Monitoring & Security** | $50-100 | $100-150 | $100-200 |
-| **Total** | **$374-824** | **$745-1,295** | **$1,769-2,319** |
+| **App Service** | **$55 (Basic B1)** | **$150-300 (Standard)** | **$438 (Premium P3v3)** |
+| **Storage & Networking** | **$25-50** | $100-200 | $100-300 |
+| **Monitoring & Security** | **$25-50** | $100-150 | $100-200 |
+| **Total** | **$329-629** | **$745-1,295** | **$1,769-2,319** |
 
 ### **Phase 1 Recommended Configuration (Cost-Optimized)**
 
@@ -147,20 +147,21 @@
     }
   },
   "appService": {
-    "tier": "Standard",
-    "sku": "S1",
-    "autoScaling": false
+    "tier": "Basic",
+    "sku": "B1",
+    "autoScaling": false,
+    "stagingSlots": false
   }
 }
 ```
 
 ### **Upgrade Path**
 
-| Phase | Azure AI Search Tier | When to Upgrade | Monthly Cost |
-|-------|---------------------|-----------------|--------------|
-| **Phase 1: Development** | **Basic** | Start here - perfect for SharePoint RAG | **$74** |
-| **Phase 2: Testing** | **Standard S1** | When storage >15GB or need semantic search | **$245** |
-| **Phase 3: Production** | **Standard S2** | Enterprise deployment with >100GB data | **$981** |
+| Phase | Azure AI Search Tier | App Service Tier | When to Upgrade | Monthly Cost |
+|-------|---------------------|-------------------|-----------------|--------------|
+| **Phase 1: Development** | **Basic** | **Basic B1** | Start here - perfect for SharePoint RAG development | **$129** |
+| **Phase 2: Testing** | **Standard S1** | **Standard S1** | When storage >15GB or need staging slots | **$318** |
+| **Phase 3: Production** | **Standard S2** | **Premium P3v3** | Enterprise deployment with >100GB data | **$1,944** |
 
 ### **Recommended Azure AI Search Configuration (Phase 1 - Basic Tier)**
 
